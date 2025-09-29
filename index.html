@@ -2,42 +2,237 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Scraper</title>
+    <title>Business Email Scraper Selector</title>
     <style>
-        /* Existing styles */
-
-        .subarea-list {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 0.5em 2em;
+        :root {
+            --np-black: #000;
+            --np-white: #fff;
+            --np-gold: #e8c15a;
+            --np-gray: #222;
+        }
+        body {
+            font-family: 'Segoe UI', Arial, sans-serif;
+            background: var(--np-black) url('np_bg.png') no-repeat center center fixed;
+            background-size: cover;
+            color: var(--np-white);
+            margin: 0;
+            padding: 0;
+        }
+        .container {
+            max-width: 650px;
+            margin: 2em auto;
+            background: var(--np-gray);
+            border-radius: 18px;
+            padding: 2em 2em 2.5em 2em;
+            box-shadow: 0 4px 32px rgba(0,0,0,0.7);
+        }
+        .logo-wrap {
+            text-align: center;
+            margin-bottom: 2em;
+        }
+        .logo-wrap img {
+            max-width: 180px;
+            height: auto;
+            margin-bottom: 0.5em;
+        }
+        h1, h2 {
+            text-align: center;
+            color: var(--np-gold);
+            margin-top: 0;
+        }
+        .section {
+            margin-bottom: 2em;
+        }
+        .checkbox-list {
             margin-left: 1em;
-            align-items: center;
+        }
+        .subarea-list {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+            gap: 0.2em 1.5em;
+            margin: 0.5em 0 1.5em 1em;
         }
         .subarea-list label {
-            margin-right: 1.5em;
+            display: flex;
+            align-items: center;
+            gap: 0.5em;
             white-space: nowrap;
+            font-size: 1em;
+        }
+        .category-input {
+            margin-top: 0.5em;
+            display: flex;
+            gap: 0.5em;
+        }
+        .category-input input[type="text"] {
+            flex: 1;
+            padding: 0.5em;
+            border: 1px solid var(--np-gold);
+            border-radius: 4px;
+            background: var(--np-black);
+            color: var(--np-white);
+        }
+        .category-input button {
+            background: var(--np-gold);
+            color: var(--np-black);
+            border: none;
+            padding: 0.5em 1em;
+            border-radius: 4px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        .category-input button:hover {
+            background: #ffd700;
+        }
+        label, input[type="checkbox"] {
+            cursor: pointer;
+        }
+        input[type="checkbox"] {
+            accent-color: var(--np-gold);
+            margin-right: 0.5em;
+        }
+        .export-btn {
+            display: block;
+            width: 100%;
+            background: var(--np-gold);
+            color: var(--np-black);
+            border: none;
+            padding: 0.8em 0;
+            border-radius: 6px;
+            font-size: 1.1em;
+            font-weight: bold;
+            letter-spacing: 1px;
+            margin-top: 1.5em;
+            cursor: pointer;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+            transition: background 0.2s;
+        }
+        .export-btn:hover {
+            background: #ffd700;
+        }
+        .check-all {
+            font-weight: bold;
+            color: var(--np-gold);
+        }
+        @media (max-width: 700px) {
+            .container {
+                padding: 1em 0.5em 1.5em 0.5em;
+            }
+            .subarea-list {
+                grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+            }
         }
     </style>
 </head>
 <body>
-    <h1>Metro Areas</h1>
-    <div class="metro-area">
-        <h2>Metro Area 1</h2>
-        <div class="subarea-list">
-            <label>Subarea 1A</label>
-            <label>Subarea 1B</label>
-            <label>Subarea 1C</label>
+    <div class="container">
+        <div class="logo-wrap">
+            <img src="NP_PROD_LOGO.png" alt="NP Prod Logo">
         </div>
+        <h1>Business Email Scraper</h1>
+        <form id="scraper-form">
+            <div class="section" id="categories-section">
+                <h2>Categories</h2>
+                <div id="categories-list" class="checkbox-list">
+                    <label><input type="checkbox" name="category" value="DMC"> DMC (Destination Management Company)</label><br>
+                    <label><input type="checkbox" name="category" value="Event Planners"> Event Planners</label><br>
+                    <label><input type="checkbox" name="category" value="Event Organisers"> Event Organisers</label><br>
+                </div>
+                <div class="category-input">
+                    <input type="text" id="new-category" placeholder="Add new category">
+                    <button type="button" onclick="addCategory()">Create Category</button>
+                </div>
+            </div>
+            <div class="section" id="locations-section">
+                <h2>Metro Areas &amp; Sub-Areas</h2>
+                <div id="metro-areas-list">
+                    <!-- Metro areas and sub-areas will be injected here -->
+                </div>
+            </div>
+            <button type="button" class="export-btn" onclick="exportSelections()">Export Selection</button>
+        </form>
     </div>
-    <div class="metro-area">
-        <h2>Metro Area 2</h2>
-        <div class="subarea-list">
-            <label>Subarea 2A</label>
-            <label>Subarea 2B</label>
-            <label>Subarea 2C</label>
-        </div>
-    </div>
-    <!-- Other metro areas and subareas -->
+    <script>
+        // Metro and sub-area data
+        const metroAreas = {
+            "Houston": [
+                "Downtown", "Midtown", "Uptown", "The Heights", "River Oaks", "Montrose", "West University", "Sugar Land", "Katy", "The Woodlands", "Kingwood", "Pearland", "Pasadena", "Baytown", "Clear Lake", "Friendswood", "Cypress", "Spring"
+            ],
+            "Dallas": [
+                "Downtown", "Uptown", "Deep Ellum", "Oak Lawn", "Bishop Arts District", "Plano", "Irving", "Frisco", "Garland", "Richardson", "Mesquite", "Carrollton", "Grand Prairie", "McKinney", "Allen"
+            ],
+            "San Antonio": [
+                "Downtown", "Alamo Heights", "Stone Oak", "Medical Center", "Southtown", "Helotes", "Converse", "Universal City", "New Braunfels", "Schertz", "Selma"
+            ],
+            "Austin": [
+                "Downtown", "South Congress", "East Austin", "West Lake Hills", "Round Rock", "Pflugerville", "Cedar Park", "Bee Cave", "Lakeway", "Georgetown", "Leander", "Buda", "Kyle"
+            ]
+        };
+
+        function renderMetroAreas() {
+            const container = document.getElementById('metro-areas-list');
+            container.innerHTML = '';
+            Object.keys(metroAreas).forEach(metro => {
+                const id = metro.toLowerCase().replace(/\s/g, '-');
+                const subareas = metroAreas[metro];
+                // Metro area header + check all
+                let html = `<div>
+                    <label class="check-all"><input type="checkbox" id="${id}-all" onchange="toggleAll('${id}', this)"> ${metro} (Check All)</label>
+                    <div class="subarea-list" id="${id}-list">`;
+                subareas.forEach((sub, i) => {
+                    html += `<label><input type="checkbox" class="${id}-subarea" name="subarea" value="${metro}|${sub}"> ${sub}</label>`;
+                });
+                html += `</div></div>`;
+                container.innerHTML += html;
+            });
+        }
+
+        function toggleAll(id, el) {
+            const checkboxes = document.querySelectorAll(
+                \\`.${id}-subarea\\`
+            );
+            checkboxes.forEach(cb => cb.checked = el.checked);
+        }
+
+        function addCategory() {
+            const val = document.getElementById('new-category').value.trim();
+            if (!val) return;
+            const categoriesList = document.getElementById('categories-list');
+            const label = document.createElement('label');
+            label.innerHTML = `<input type="checkbox" name="category" value="${val}"> ${val}`;
+            categoriesList.appendChild(label);
+            categoriesList.appendChild(document.createElement('br'));
+            document.getElementById('new-category').value = '';
+        }
+
+        function exportSelections() {
+            // Get categories
+            const cats = Array.from(document.querySelectorAll('input[name="category"]:checked')).map(cb => cb.value);
+            // Get metro/subareas
+            const areaPairs = Array.from(document.querySelectorAll('input[name="subarea"]:checked')).map(cb => cb.value.split('|'));
+            // Organize by metro area
+            let areas = {};
+            areaPairs.forEach(([metro, sub]) => {
+                if (!areas[metro]) areas[metro] = [];
+                areas[metro].push(sub);
+            });
+
+            const exportData = {
+                categories: cats,
+                areas: areas
+            };
+
+            // Download as JSON
+            const blob = new Blob([JSON.stringify(exportData, null, 2)], {type:'application/json'});
+            const a = document.createElement('a');
+            a.href = URL.createObjectURL(blob);
+            a.download = 'scraper_selection.json';
+            a.click();
+        }
+
+        // Initial render
+        renderMetroAreas();
+    </script>
 </body>
 </html>
